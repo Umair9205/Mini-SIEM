@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin Page</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+        <h1>Welcome to the Admin Page</h1>
+        <form id="form" method="POST">    
+            <label for="admin">Username:</label>
+            <input id="admin" name="admin" type="text" placeholder="Username" required>
+            <br>
+            <label for="password">Password:</label>
+            <input id="password" name="password" type="password" placeholder="Password" required>
+            <br>
+            <button type="submit">Login</button>
+        </form>
+    </body>
+</html>

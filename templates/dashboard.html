@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Log Analyzer Dashboard</title>
+        <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard_style.css') }}"> -->
+        <link rel="stylesheet" type="text/css" href="..\static\dashboard_style.css">  
+    </head>
+<body>
+    <h1>Log Analyzer Dashboard</h1>
+    <p>Welcome to the Log Analyzer Dashboard</p>
+    <div class="row">
+        <div class="d1">
+            <div class="card">
+                <h2>Total Logs</h2>
+                <p>{{ total_logs }}</p>
+            </div>
+            <div class="card">
+                <h2>Errors</h2>
+                <p>{{ error_count }}</p>
+            </div>
+        </div>
+        <div class="d2">
+            <div class="card">
+                <h2>Warnings</h2>
+                <p>{{ warning_count }}</p>
+            </div>
+            <div class="card">
+                <h2>Info</h2>
+                <p>{{ info_count }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
