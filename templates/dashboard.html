@@ -2,7 +2,6 @@
 <html>
     <head>
         <title>Log Analyzer Dashboard</title>
-        <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard_style.css') }}"> -->
         <link rel="stylesheet" type="text/css" href="..\static\dashboard_style.css">  
     </head>
 <body>
@@ -26,9 +25,32 @@
             </div>
             <div class="card">
                 <h2>Info</h2>
-                <p>{{ info_count }}</p>
+                <div id="live-logs"></div>
             </div>
         </div>
     </div>
+    <script>
+    async function fetchLogs() {
+        const response = await fetch('/api/logs');
+        const logs = await response.json();
+
+        const logBox = document.getElementById('live-logs');
+
+        logBox.innerHTML = '';
+
+        logs.forEach(log => {
+            const logEntry = document.createElement('p');
+
+            logEntry.textContent =
+                `${log.timestamp} | ${log.level} | ${log.ip_address} | ${log.message}`;
+
+            logBox.appendChild(logEntry);
+        });
+    }
+
+    fetchLogs();
+
+    setInterval(fetchLogs, 2000);
+</script>
 </body>
 </html>
