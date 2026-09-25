@@ -1,0 +1,29 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div id="notifications" class="notifications"
+             role="status" aria-live="polite" aria-atomic="true">
+            {% for category, message in messages %}
+                <div class="notification-toast {{ category }}">
+                    <p>{{ message }}</p>
+                    <div class="notification-progress" aria-hidden="true">
+                        <div class="notification-progress-fill"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <script>
+        (() => {
+            const notifications = document.getElementById('notifications');
+
+            setTimeout(() => {
+                notifications.classList.add('fade-out');
+
+                setTimeout(() => {
+                    notifications.remove();
+                }, 300);
+            }, 2000);
+        })();
+        </script>
+    {% endif %}
+{% endwith %}

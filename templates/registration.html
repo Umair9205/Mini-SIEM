@@ -1,25 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Registration Form</title>
+        <title>Register | Mini-SIEM</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
-        <h1 class="molten-text">Registration Form</h1>
-        <form id="form" method="POST">
-            <label for="email">Email:</label>
-            <input id="email" name="email" type="email" placeholder="Email" required>
-            <br>
-            <label for="username">Username:</label>
-            <input id="username" name="username" type="text" placeholder="Username" required>
-            <br>
-            <label for="password">Password:</label>
-            <input id="password" name="password" type="password" placeholder="Password" required>
-            <br>
-            <p>Already have an account? <a href="{{ url_for('home') }}">Login Here</a></p>
-            <button type="submit">Register</button>
-        </form>
+        <main class="auth-page">
+            <header class="brand">
+                <span class="brand-mark" aria-hidden="true">M</span>
+                <span>Mini-SIEM</span>
+            </header>
+
+            <section class="auth-card" aria-labelledby="page-title">
+                <p class="eyebrow">NEW ACCOUNT</p>
+                <h1 id="page-title">Create an account</h1>
+                <p class="subtitle">Enter your details to register.</p>
+
+                <form id="form" method="POST">
+                    <div class="field">
+                        <label for="email">Email address</label>
+                        <input id="email" name="email" type="email"
+                               placeholder="you@example.com"
+                               autocomplete="email" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="username">Username</label>
+                        <input id="username" name="username" type="text"
+                               placeholder="Choose a username"
+                               autocomplete="username" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password"
+                               placeholder="Choose a password"
+                               autocomplete="new-password" required>
+                    </div>
+
+                    <button type="submit">Create account</button>
+
+                    <p class="form-footer">
+                        Already have an account?
+                        <a href="{{ url_for('home') }}">Sign in</a>
+                    </p>
+                </form>
+            </section>
+
+            <p class="page-footer">Mini-SIEM · Log Analyzer</p>
+        </main>
+        {% include 'notifications.html' %}
     </body>
 </html>

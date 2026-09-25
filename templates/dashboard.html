@@ -1,56 +1,199 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Log Analyzer Dashboard</title>
-        <link rel="stylesheet" type="text/css" href="..\static\dashboard_style.css">  
+        <link rel="stylesheet" href="../static/dashboard_style.css">
     </head>
 <body>
-    <h1>Log Analyzer Dashboard</h1>
-    <p>Welcome to the Log Analyzer Dashboard</p>
-    <div class="row">
-        <div class="d1">
+    <main class="dashboard">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">MINI-SIEM / SECURITY OPERATIONS</p>
+                <h1>Log Analyzer Dashboard</h1>
+                <p class="subtitle">Monitor security events and recent activity.</p>
+            </div>
+            <span class="admin-badge">Admin session</span>
+        </header>
+
+        <section class="stats" aria-label="Log totals at page load">
             <div class="card">
                 <h2>Total Logs</h2>
-                <p>{{ total_logs }}</p>
+                <p class="metric">{{ total_logs }}</p>
+                <span class="hint">Recorded events</span>
             </div>
+
             <div class="card">
-                <h2>Errors</h2>
-                <p>{{ error_count }}</p>
+                <h2><span class="severity-dot error"></span>Errors</h2>
+                <p class="metric">{{ error_count }}</p>
+                <span class="hint">Error events</span>
             </div>
-        </div>
-        <div class="d2">
+
             <div class="card">
-                <h2>Warnings</h2>
-                <p>{{ warning_count }}</p>
+                <h2><span class="severity-dot warning"></span>Warnings</h2>
+                <p class="metric">{{ warning_count }}</p>
+                <span class="hint">Warning events</span>
             </div>
-            <div class="card">
-                <h2>Info</h2>
-                <div id="live-logs"></div>
+        </section>
+
+        <p class="snapshot-note">
+            Totals reflect page load. The event feed refreshes every 2 seconds.
+        </p>
+
+        <section class="events" aria-labelledby="events-title">
+            <div class="events-header">
+                <div>
+                    <h2 id="events-title">Live Logs</h2>
+                    <p class="subtitle">Latest security events</p>
+                </div>
+                <span id="feed-status" role="status">Connecting…</span>
             </div>
-        </div>
-    </div>
+
+            <div class="table-scroll" tabindex="0"
+                 role="region" aria-label="Security events table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Time</th>
+                            <th scope="col">Level</th>
+                            <th scope="col">IP address</th>
+                            <th scope="col">Event</th>
+                        </tr>
+                    </thead>
+                    <tbody id="live-logs">
+                        <tr>
+                            <td colspan="4" class="empty">
+                                Loading security events…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <footer class="events-footer">
+                <span id="feed-detail">Waiting for the first update</span>
+                <span>Session expires after 15 minutes of inactivity</span>
+            </footer>
+        </section>
+    </main>
+
     <script>
+    const logBox = document.getElementById('live-logs');
+    const feedStatus = document.getElementById('feed-status');
+    const feedDetail = document.getElementById('feed-detail');
+    let lastPayload = null;
+
     async function fetchLogs() {
-        const response = await fetch('/api/logs');
-        const logs = await response.json();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        let sessionExpired = false;
 
-        const logBox = document.getElementById('live-logs');
+        try {
+            const response = await fetch('/api/logs', {
+                cache: 'no-store',
+                credentials: 'same-origin',
+                signal: controller.signal
+            });
 
-        logBox.innerHTML = '';
+            if (response.status === 401 || response.redirected) {
+                sessionExpired = true;
+                logBox.replaceChildren();
+                feedStatus.textContent = 'Session expired';
+                window.location.replace('/admin');
+                return;
+            }
 
-        logs.forEach(log => {
-            const logEntry = document.createElement('p');
+            if (!response.ok) {
+                throw new Error('Unable to fetch logs');
+            }
 
-            logEntry.textContent =
-                `${log.timestamp} | ${log.level} | ${log.ip_address} | ${log.message}`;
+            const logs = await response.json();
 
-            logBox.appendChild(logEntry);
-        });
+            if (!Array.isArray(logs) ||
+                logs.some(log => !log || typeof log !== 'object')) {
+                throw new Error('Invalid log response');
+            }
+
+            const payload = JSON.stringify(logs);
+
+            if (payload !== lastPayload) {
+                const rows = document.createDocumentFragment();
+
+                logs.forEach(log => {
+                    const row = document.createElement('tr');
+                    const level = String(log.level || 'UNKNOWN').toUpperCase();
+
+                    [
+                        log.timestamp,
+                        level,
+                        log.ip_address,
+                        log.message
+                    ].forEach((value, index) => {
+                        const cell = document.createElement('td');
+
+                        if (index === 1) {
+                            const badge = document.createElement('span');
+
+                            const levelClass = {
+                                ERROR: 'error',
+                                WARNING: 'warning',
+                                INFO: 'info'
+                            }[level] || 'unknown';
+
+                            badge.className = 'level ' + levelClass;
+                            badge.textContent = level;
+                            cell.appendChild(badge);
+                        } else {
+                            cell.textContent = value == null ? '—' : String(value);
+                        }
+
+                        row.appendChild(cell);
+                    });
+
+                    rows.appendChild(row);
+                });
+
+                if (!logs.length) {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+
+                    cell.colSpan = 4;
+                    cell.className = 'empty';
+                    cell.textContent = 'No security events yet.';
+
+                    row.appendChild(cell);
+                    rows.appendChild(row);
+                }
+
+                logBox.replaceChildren(rows);
+                lastPayload = payload;
+            }
+
+            feedStatus.textContent = 'Live';
+            feedStatus.dataset.state = 'live';
+            feedDetail.textContent =
+                `${logs.length} events · Updated ${new Date().toLocaleTimeString()}`;
+        } catch (error) {
+            feedStatus.textContent = 'Connection interrupted';
+            feedStatus.dataset.state = 'error';
+            feedDetail.textContent =
+                'Retrying automatically. Displayed events may be out of date.';
+
+            if (lastPayload === null) {
+                logBox.querySelector('td').textContent =
+                    'Unable to load events. Reconnecting…';
+            }
+        } finally {
+            clearTimeout(timeout);
+
+            if (!sessionExpired) {
+                setTimeout(fetchLogs, 2000);
+            }
+        }
     }
 
     fetchLogs();
-
-    setInterval(fetchLogs, 2000);
-</script>
+    </script>
 </body>
 </html>

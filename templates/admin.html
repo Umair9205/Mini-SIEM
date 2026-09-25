@@ -1,21 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Page</title>
+        <title>Admin Login | Mini-SIEM</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     </head>
     <body>
-        <h1>Welcome to the Admin Page</h1>
-        <form id="form" method="POST">    
-            <label for="admin">Username:</label>
-            <input id="admin" name="admin" type="text" placeholder="Username" required>
-            <br>
-            <label for="password">Password:</label>
-            <input id="password" name="password" type="password" placeholder="Password" required>
-            <br>
-            <button type="submit">Login</button>
-        </form>
+        <main class="auth-page">
+            <header class="brand">
+                <span class="brand-mark" aria-hidden="true">M</span>
+                <span>Mini-SIEM</span>
+            </header>
+
+            <section class="auth-card" aria-labelledby="page-title">
+                <p class="eyebrow">SECURITY OPERATIONS</p>
+                <h1 id="page-title">Admin sign in</h1>
+                <p class="subtitle">
+                    Sign in with your administrator credentials to access the dashboard.
+                </p>
+
+                <form id="form" method="POST">
+                    <div class="field">
+                        <label for="admin">Admin username</label>
+                        <input id="admin" name="admin" type="text"
+                               placeholder="Enter your admin username"
+                               autocomplete="username" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password" required>
+                    </div>
+
+                    <button type="submit">Sign in to dashboard</button>
+                </form>
+
+                <p class="access-note">
+                    Dashboard access is restricted to administrators.
+                </p>
+            </section>
+
+            <p class="page-footer">
+                <a href="{{ url_for('home') }}">Back to user login</a>
+            </p>
+        </main>
+        {% include 'notifications.html' %}
     </body>
 </html>
