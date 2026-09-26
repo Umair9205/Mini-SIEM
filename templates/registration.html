@@ -19,6 +19,7 @@
                 <p class="subtitle">Enter your details to register.</p>
 
                 <form id="form" method="POST">
+                    {{ csrf_token() }}
                     <div class="field">
                         <label for="email">Email address</label>
                         <input id="email" name="email" type="email"

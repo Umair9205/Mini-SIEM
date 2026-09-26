@@ -7,6 +7,7 @@ import flask
 import bcrypt
 import pg8000.dbapi
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
 
 load_dotenv()
 
@@ -26,6 +27,7 @@ def get_db_connection():
 
 app = flask.Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
+csrf = CSRFProtect(app)
 
 ADMIN_TIMEOUT = 15 * 60
 
