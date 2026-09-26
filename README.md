@@ -19,7 +19,7 @@ Python · Flask · PostgreSQL (Neon) · HTML · CSS · JavaScript
 
 Install the dependencies:
 
-    pip install flask bcrypt pg8000 python-dotenv
+    pip install flask bcrypt pg8000 python-dotenv flask-wtf 
 
 Add your database connection and Flask secret key to `.env`:
 
