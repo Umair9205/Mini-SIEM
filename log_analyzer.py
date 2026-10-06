@@ -11,8 +11,6 @@ from flask_wtf.csrf import CSRFProtect
 
 load_dotenv()
 
-total_logs = None
-
 def get_db_connection():
     url = urlparse(os.environ["DATABASE_URL"])
 
@@ -119,7 +117,6 @@ def registration():
             return flask.redirect(flask.url_for('home'))
         finally:
             conn.close()
-        print(f"Email: {email}, Username: {username}, Password: {hashed_password}")
     return flask.render_template('registration.html')
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -266,4 +263,4 @@ def api_logs():
     return flask.jsonify(logs)
 
 if __name__ == '__main__':
-    app.run()
+    app.run('0.0.0.0',port=8080)

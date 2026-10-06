@@ -21,7 +21,7 @@
                 </p>
 
                 <form id="form" method="POST">
-                    {{ csrf_token() }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="field">
                         <label for="admin">Admin username</label>
                         <input id="admin" name="admin" type="text"

@@ -19,7 +19,7 @@
                 <p class="subtitle">Enter your account credentials to sign in.</p>
 
                 <form id="form" method="POST">
-                    {{ csrf_token() }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="field">
                         <label for="username">Username</label>
                         <input id="username" name="username" type="text"
