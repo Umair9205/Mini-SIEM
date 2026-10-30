@@ -17,28 +17,28 @@
             <span class="admin-badge">Admin session</span>
         </header>
 
-        <section class="stats" aria-label="Log totals at page load">
+        <section class="stats" aria-label="Live log totals">
             <div class="card">
                 <h2>Total Logs</h2>
-                <p class="metric">{{ total_logs }}</p>
+                <p class="metric" id="total-logs">{{ total_logs }}</p>
                 <span class="hint">Recorded events</span>
             </div>
 
             <div class="card">
                 <h2><span class="severity-dot error"></span>Errors</h2>
-                <p class="metric">{{ error_count }}</p>
+                <p class="metric" id="error-count">{{ error_count }}</p>
                 <span class="hint">Error events</span>
             </div>
 
             <div class="card">
                 <h2><span class="severity-dot warning"></span>Warnings</h2>
-                <p class="metric">{{ warning_count }}</p>
+                <p class="metric" id="warning-count">{{ warning_count }}</p>
                 <span class="hint">Warning events</span>
             </div>
         </section>
 
         <p class="snapshot-note">
-            Totals reflect page load. The event feed refreshes every 2 seconds.
+            Totals and the event feed refresh every 2 seconds.
         </p>
 
         <section class="events" aria-labelledby="events-title">
@@ -58,6 +58,7 @@
                             <th scope="col">Time</th>
                             <th scope="col">Level</th>
                             <th scope="col">IP address</th>
+                            <th scope="col">OS</th>
                             <th scope="col">Event</th>
                         </tr>
                     </thead>
@@ -82,6 +83,9 @@
     const logBox = document.getElementById('live-logs');
     const feedStatus = document.getElementById('feed-status');
     const feedDetail = document.getElementById('feed-detail');
+    const totalLogs = document.getElementById('total-logs');
+    const errorCount = document.getElementById('error-count');
+    const warningCount = document.getElementById('warning-count');
     let lastPayload = null;
 
     async function fetchLogs() {
@@ -115,6 +119,23 @@
                 throw new Error('Invalid log response');
             }
 
+            const counts = logs.reduce((result, log) => {
+                const level = String(log.level || '').toUpperCase();
+
+                result.total += 1;
+                if (level === 'ERROR') {
+                    result.errors += 1;
+                } else if (level === 'WARNING') {
+                    result.warnings += 1;
+                }
+
+                return result;
+            }, { total: 0, errors: 0, warnings: 0 });
+
+            totalLogs.textContent = String(counts.total);
+            errorCount.textContent = String(counts.errors);
+            warningCount.textContent = String(counts.warnings);
+
             const payload = JSON.stringify(logs);
 
             if (payload !== lastPayload) {
@@ -128,6 +149,7 @@
                         log.timestamp,
                         level,
                         log.ip_address,
+                        log.OS,
                         log.message
                     ].forEach((value, index) => {
                         const cell = document.createElement('td');

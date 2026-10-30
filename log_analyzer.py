@@ -34,12 +34,17 @@ def home():
     if flask.request.method == 'POST':
         username = flask.request.form.get('username')
         password = flask.request.form.get('password')
-        ipaddr = flask.request.remote_addr
+        ipaddr = flask.request.headers.get(
+            "CF-Connecting-IP",
+            flask.request.remote_addr
+        )
+        os_name = flask.request.user_agent.platform or "Unknown"
 
         if not username or not password:
             writelog(
                 "WARNING",
                 ipaddr,
+                os_name,
                 "Login Attempt without missingusername or password"
             )
             flask.flash("Please enter your username and password.", "error")
@@ -56,6 +61,7 @@ def home():
             writelog(
                 "ERROR",
                 ipaddr,
+                os_name,
                 "Error occurred while accessing the database"
             )
             error_context(
@@ -73,6 +79,7 @@ def home():
                 writelog(
                     "INFO",
                     ipaddr,
+                    os_name,
                     f"Login Successfully with username: {username}"
                 )
                 flask.flash("Login successful.", "success")
@@ -81,6 +88,7 @@ def home():
                 writelog(
                     "WARNING",
                     ipaddr,
+                    os_name,
                     f"Failed Login Attempt with username: {username} - Incorrect Password"
                 )
                 flask.flash("Incorrect password.", "error")
@@ -89,6 +97,7 @@ def home():
             writelog(
                 "WARNING",
                 ipaddr,
+                os_name,
                 "Failed Login Attempt - Incorrect Username"
             )
             flask.flash("Username not found.", "error")
@@ -188,11 +197,11 @@ def dashboard():
 
     return flask.render_template('dashboard.html', total_logs=total, error_count=error, warning_count=warning)
 
-def writelog(level, ipaddr, message):
+def writelog(level, ipaddr, os_name, message):
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO logs(level, ip_address, message) VALUES(%s, %s, %s)", (level, ipaddr, message))
+        cursor.execute('INSERT INTO logs(level, ip_address, "OS", message) VALUES(%s, %s, %s, %s)', (level, ipaddr, os_name, message))
         conn.commit()
     finally:
         conn.close()
@@ -244,7 +253,7 @@ def api_logs():
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, timestamp, level, ip_address, message FROM logs ORDER BY id DESC")
+        cursor.execute('SELECT id, timestamp, level, ip_address, "OS", message FROM logs ORDER BY id DESC')
         rows = cursor.fetchall()
     finally:
         conn.close()
@@ -257,7 +266,8 @@ def api_logs():
             "timestamp": row[1],
             "level": row[2],
             "ip_address": row[3],
-            "message": row[4]
+            "OS": row[4],
+            "message": row[5]
         })
 
     return flask.jsonify(logs)
